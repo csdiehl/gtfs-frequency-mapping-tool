@@ -78,12 +78,18 @@ trips_in_period = stop_times[(stop_times.arrival_time >= start_secs) & (stop_tim
 
 #Day type filter - weekday, weekend, etc. 
 selected_ids = filter_dates(selected_day, GTFS)
+#change data type of service id to match selected ids
+trips['service_id'] = trips.service_id.astype(str)
 
 #Apply the filters to the other tables
 trips = trips[trips.route_id.isin(routes.route_id.unique()) & (trips.trip_id.isin(trips_in_period)) & (trips.service_id.isin(selected_ids))]
 stop_times = stop_times[stop_times.trip_id.isin(trips.trip_id.unique())]
 stops = stops[stops.stop_id.isin(stop_times.stop_id.unique())]
 shapes = shapes[shapes.shape_id.isin(trips.shape_id.unique())]
+
+#check that filter worked correctly
+if len(shapes) == 0:
+  print('No trips found with selected filters')
 
 #might need to find more flexible way to filter just bus routes that works for multiple agencies
 
