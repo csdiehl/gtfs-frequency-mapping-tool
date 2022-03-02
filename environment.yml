@@ -1,0 +1,14 @@
+name: new_mx_map
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - geopandas
+  - utm
+  - jenkspy
+  -pip: 
+    -PyInquirer
+    -gtfs-functions=1.0.1
+    -Partridge
+prefix: C:\ProgramData\Anaconda3\envs\new_mx_map
