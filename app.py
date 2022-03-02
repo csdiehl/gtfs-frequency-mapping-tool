@@ -11,56 +11,64 @@ from helper_functions import check_routes, filter_dates
 import importlib
 
 #Getting User Input###################################################
-#Corridors dictionary for selecting routes in a single corridor
+#Check for a configuration file, if so use those settings
 if sys.argv[1]:
   config = __import__(sys.argv[1])
   from config import settings
-  print(settings['Feed'])
+   
+  network = settings['Network Setting']
+  GTFS = settings['Feed']
+  chosen_direction = settings['Direction']
+  selected_day = settings['Day Type']
+  route_list = settings['Routes']
+  start_hr = settings['Start Time']
+  end_hr = settings['End Time']
 
+#Otherwise, let the user choose their settings
+else: 
+  dir_list = os.listdir('./feeds')
+  for file in dir_list[:]:
+      if (file.find('zip') == -1):
+          dir_list.remove(file)
 
-dir_list = os.listdir('./feeds')
-for file in dir_list[:]:
-    if (file.find('zip') == -1):
-        dir_list.remove(file)
-
-questions = [{
+  questions = [{
+      'type': 'list',
+      'message': 'Choose a GTFS zip file in this folder',
+      'name': 'GTFS',
+      'choices': dir_list
+  },{
+      'type': 'list',
+      'message': 'Choose Direction',
+      'name': 'direction',
+      'choices': ['Inbound', 'Outbound', 'Both Ways']
+  },{
     'type': 'list',
-    'message': 'Choose a GTFS zip file in this folder',
-    'name': 'GTFS',
-    'choices': dir_list
-},{
+    'message': 'Choose type of day: ',
+    'name': 'day_type',
+    'choices': ['Busiest Day', 'weekday', 'weekend', 'All Days']
+  }, {
     'type': 'list',
-    'message': 'Choose Direction',
-    'name': 'direction',
-    'choices': ['Inbound', 'Outbound', 'Both Ways']
-},{
-  'type': 'list',
-  'message': 'Choose type of day: ',
-  'name': 'day_type',
-  'choices': ['Busiest Day', 'weekday', 'weekend', 'All Days']
-}, {
-  'type': 'list',
-  'message': 'Choose network-wide analysis or enter routes',
-  'name': 'network',
-  'choices': ['Network Wide', 'Enter Route List']
-}]
+    'message': 'Choose network-wide analysis or enter routes',
+    'name': 'network',
+    'choices': ['Network Wide', 'Enter Route List']
+  }]
 
-#Save user preferences
-answers = prompt(questions)
-network = answers['network']
-GTFS = answers['GTFS']
-selected_day = answers['day_type']
-chosen_direction = answers['direction']
+  #Save user preferences
+  answers = prompt(questions)
+  network = answers['network']
+  GTFS = answers['GTFS']
+  selected_day = answers['day_type']
+  chosen_direction = answers['direction']
 
-if network == 'Enter Route List': 
-  route_choices = input('Route List: ')
-  route_list = route_choices.upper().replace(' ', '').split(",")
+  if network == 'Enter Route List': 
+    route_choices = input('Route List: ')
+    route_list = route_choices.upper().replace(' ', '').split(",")
 
-while True:
-  start_hr = int(input('Start Hour: '))
-  end_hr = int(input('End Hour: '))
-  if (start_hr >= 0) & (start_hr <= 23) & (end_hr >= 1) & (end_hr <= 24) & (end_hr > start_hr):
-    break
+  while True:
+    start_hr = int(input('Start Hour: '))
+    end_hr = int(input('End Hour: '))
+    if (start_hr >= 0) & (start_hr <= 23) & (end_hr >= 1) & (end_hr <= 24) & (end_hr > start_hr):
+      break
 
 ######Starting Analysis#############################################
 #Start tracking runtime
@@ -116,7 +124,7 @@ cutoffs = list(range(start_hr, end_hr + 1))
 seg_freq = gtfs.segments_freq(segments_gdf, stop_times, routes, cutoffs = cutoffs)
 
 #Filter for time window, combine frequency along shared segments
-if answers['direction'] != 'Both Ways': 
+if chosen_direction != 'Both Ways': 
   combined = seg_freq[seg_freq.dir_id == chosen_direction]
 
 else: 
