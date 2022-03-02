@@ -8,10 +8,15 @@ import os
 import time
 import utm
 from helper_functions import check_routes, filter_dates
+import importlib
 
 #Getting User Input###################################################
 #Corridors dictionary for selecting routes in a single corridor
-net_choices = ['Network Wide', 'Enter Route List']
+if sys.argv[1]:
+  config = __import__(sys.argv[1])
+  from config import settings
+  print(settings['Feed'])
+
 
 dir_list = os.listdir('./feeds')
 for file in dir_list[:]:
@@ -37,7 +42,7 @@ questions = [{
   'type': 'list',
   'message': 'Choose network-wide analysis or enter routes',
   'name': 'network',
-  'choices': net_choices
+  'choices': ['Network Wide', 'Enter Route List']
 }]
 
 #Save user preferences
@@ -118,8 +123,7 @@ else:
   combined = seg_freq[(seg_freq.route_name != 'All lines')]
 
 
-combined.groupby(['segment_id', 'window', 's_st_id', 's_st_name', 'e_st_name']).agg({'route_name': list, 'frequency': 'sum', 'ntrips': 'sum', 'geometry': 'first'}).reset_index()
-combined['route_name'] = combined.route_name.apply(lambda x: ', '.join(map(str, x))) #turn list into string so can be saved in shapefile
+combined.groupby(['segment_id', 'window', 's_st_id', 's_st_name', 'e_st_name']).agg({'route_name': ", ".join, 'frequency': 'sum', 'ntrips': 'sum', 'geometry': 'first'}).reset_index()
 combined['day_type'] = selected_day
 combined['direction'] = chosen_direction
 combined = gpd.GeoDataFrame(combined, crs="EPSG:3857")
@@ -129,6 +133,8 @@ combined = gpd.GeoDataFrame(combined, crs="EPSG:3857")
 diff = pd.to_datetime(combined.window.str.split("-", expand = True)[1], format = '%H:%M') - pd.to_datetime(combined.window.str.split("-", expand = True)[0], format = '%H:%M')
 hours = combined['hours'] = diff.dt.total_seconds() / 3600
 combined['headway_mins'] = round((1 / (combined.frequency / hours)) * 60, 1)
+
+print(combined.head(4))
 
 #Ask for file name
 while True: 
