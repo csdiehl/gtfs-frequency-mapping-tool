@@ -2,7 +2,7 @@
 
 1. Download Anaconda (miniconda version) – a package and environment manager for Python
 
-2. Place the application folder somewhere on your computer. This will be your working directory.
+2. Clone this repo somewhere on your computer. This will be your working directory.
 
 3. Open Anaconda Prompt. Run cd (path to working directory)
 
@@ -21,3 +21,14 @@
 5. Follow the messages displayed in the prompt.
 
 6. When finished, run conda deactivate.
+
+## Settings
+
+Route list: comma-separated list of routes (corresponding to route short name in GTFS)
+Time Interval: Integer in 24-hr clock. frequencies will only be calculated for the specified hours
+
+## Optional Configuration
+
+The tool can be configured using an optional file. Use the config.py file as an example. 
+
+Name the configuration file anything you want and place in the same folder. Run the tool with the name of the file (excluding .py) as a command line argument. 
