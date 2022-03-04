@@ -12,7 +12,7 @@ import importlib
 
 #Getting User Input###################################################
 #Check for a configuration file, if so use those settings
-if sys.argv[1]:
+if len(sys.argv) > 1:
   config = __import__(sys.argv[1])
   from config import settings
    
@@ -21,8 +21,10 @@ if sys.argv[1]:
   chosen_direction = settings['Direction']
   selected_day = settings['Day Type']
   route_list = settings['Routes']
-  start_hr = settings['Start Time']
-  end_hr = settings['End Time']
+  start_hr = settings['Time Interval'][0]
+  end_hr = settings['Time Interval'][1]
+  hourly = settings['Time Interval'][2]
+  file_name = settings['File Name']
 
 #Otherwise, let the user choose their settings
 else: 
@@ -51,6 +53,11 @@ else:
     'message': 'Choose network-wide analysis or enter routes',
     'name': 'network',
     'choices': ['Network Wide', 'Enter Route List']
+  }, {
+    'type': 'list',
+    'message': 'Split results by hour?',
+    'name': 'hourly',
+    'choices': ['Yes', 'No']
   }]
 
   #Save user preferences
@@ -59,6 +66,7 @@ else:
   GTFS = answers['GTFS']
   selected_day = answers['day_type']
   chosen_direction = answers['direction']
+  hourly = answers['hourly']
 
   if network == 'Enter Route List': 
     route_choices = input('Route List: ')
@@ -69,6 +77,13 @@ else:
     end_hr = int(input('End Hour: '))
     if (start_hr >= 0) & (start_hr <= 23) & (end_hr >= 1) & (end_hr <= 24) & (end_hr > start_hr):
       break
+
+  #Ask for file name
+  while True: 
+    file_name = input('Enter a name for the output file: ')
+    if len(file_name) < 20:
+      break
+
 
 ######Starting Analysis#############################################
 #Start tracking runtime
@@ -111,6 +126,7 @@ if len(shapes) == 0:
 
 #Creating subsegments for each route
 print('Splitting routes into segments...')
+print('')
 freq_start = time.time()
 
 segments_gdf = gtfs.cut_gtfs(stop_times, stops, shapes)
@@ -119,45 +135,47 @@ print('Segments created in ' + str(round((time.time() - freq_start) / 60, 3)) + 
 
 #Frequencies for subsegments of each route
 print("Calculating frequencies...")
-cutoffs = list(range(start_hr, end_hr + 1))
+
+#split into hourly buckets if this option was chosen, otherwise aggregate across whole time period
+if hourly == 'Yes':
+  cutoffs = list(range(start_hr, end_hr + 1))
+else: 
+  cutoffs = [start_hr, end_hr]
+  hours = end_hr - start_hr
 
 seg_freq = gtfs.segments_freq(segments_gdf, stop_times, routes, cutoffs = cutoffs)
 
 #Filter for time window, combine frequency along shared segments
 if chosen_direction != 'Both Ways': 
-  combined = seg_freq[seg_freq.dir_id == chosen_direction]
+  filtered = seg_freq[seg_freq.dir_id == chosen_direction]
 
 else: 
-  combined = seg_freq[(seg_freq.route_name != 'All lines')]
+  filtered = seg_freq[(seg_freq.route_name != 'All lines')]
 
+#add up the trips from all routes
+combined = filtered.groupby(['segment_id', 'window', 's_st_id', 's_st_name', 'e_st_name']).agg({'route_name': ", ".join, 'ntrips': 'sum', 'geometry': 'first'}).reset_index()
 
-combined.groupby(['segment_id', 'window', 's_st_id', 's_st_name', 'e_st_name']).agg({'route_name': ", ".join, 'frequency': 'sum', 'ntrips': 'sum', 'geometry': 'first'}).reset_index()
+#calculate combined headway in mins for the hour interval
+#split the frequency by the hour if needed
+combined['hourly_frequency'] = round(combined.ntrips / hours, 1) if hourly == 'No' else combined.ntrips
+combined['headway_mins'] = round((1 / combined.hourly_frequency) * 60, 2)
+
+#Relabel columns
 combined['day_type'] = selected_day
 combined['direction'] = chosen_direction
+combined.rename(columns = {'ntrips': 'trips_in_period'}, inplace = True)
+
+#convert to geodataframe
 combined = gpd.GeoDataFrame(combined, crs="EPSG:3857")
-#combined.drop(columns = ['route_id', 'route_name', 'dir_id'], inplace = True)
-
-#calculate number of hours in each time window and headways (minute)
-diff = pd.to_datetime(combined.window.str.split("-", expand = True)[1], format = '%H:%M') - pd.to_datetime(combined.window.str.split("-", expand = True)[0], format = '%H:%M')
-hours = combined['hours'] = diff.dt.total_seconds() / 3600
-combined['headway_mins'] = round((1 / (combined.frequency / hours)) * 60, 1)
-
 print(combined.head(4))
-
-#Ask for file name
-while True: 
-  file_name = input('Enter a name for the output file: ')
-  if len(file_name) < 20:
-    break
 
 #Saving results in geoJSON / shapefile
 print('Saving results...')
 
-
 gtfs.save_gdf(combined, file_name, shapefile = True, geojson = False)
 #Save a basic map for reference / error checking
-ax = combined.plot(figsize=(20, 20), column = 'headway_mins', cmap = 'inferno', 
-            scheme = 'NaturalBreaks', k = 6, legend = True, alpha = .7, markersize = 2)
+ax = combined.plot(figsize=(20, 20), column = 'hourly_frequency', cmap = 'OrRd',
+            scheme = 'NaturalBreaks', k = 5, legend = True, alpha = .7, markersize = 2)
 ax.set_axis_off()
 plt.savefig('map.png')
 
