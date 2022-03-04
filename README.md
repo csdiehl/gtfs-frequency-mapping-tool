@@ -1,3 +1,5 @@
+This tool provides an easy-to-use command line interface for producing shapefiles with transit headways and frequencies for user-selected time periods and routes. It relies heavily on the [gtfs_functions](https://github.com/Bondify/gtfs_functions) python library for the essential calculations. 
+
 ## First time setup and installation
 
 1. Download Anaconda (miniconda version) – a package and environment manager for Python
