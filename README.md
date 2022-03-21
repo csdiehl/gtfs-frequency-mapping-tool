@@ -39,11 +39,11 @@ Split results by hour? If selected, will create a separate feature in the shapef
 
 The tool can be configured using an optional file. Use the config.py file as an example. This file consists of a dictionary with the following key-value pairs:
 
-Feed: name of the GTFS zip file including extension
-Direction: One of "Inbound" or "Outbound"
-Day Type: One of "weekday", "weekend", "All Days", "Busiest Day"
-Routes: List of routes entered as strings (e.g. ["101", "102", "156"]. These should correspond to the route_short_name field in GTFS.
-Time Interval: List containing 3 items. Integer for start and end hour (24-hr clock), and "yes" or "no" for splitting results by hour (e.g. [6,9, "yes"]). 
-File name: what to call the output file (without the extension)
+- Feed: name of the GTFS zip file including extension
+- Direction: One of "Inbound" or "Outbound"
+- Day Type: One of "weekday", "weekend", "All Days", "Busiest Day"
+- Routes: List of routes entered as strings (e.g. ["101", "102", "156"]. These should correspond to the route_short_name field in GTFS.
+- Time Interval: List containing 3 items. Integer for start and end hour (24-hr clock), and "yes" or "no" for splitting results by hour (e.g. [6,9, "yes"]). 
+- File name: what to call the output file (without the extension)
 
 Name the configuration file anything you want and place in the same folder. Run the tool with the name of the config file (excluding the .py extension) as a command line argument (e.g. python app.py config). 
