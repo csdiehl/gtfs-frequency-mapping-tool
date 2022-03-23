@@ -4,15 +4,15 @@ This tool provides an easy-to-use command line interface for producing shapefile
 
 For all below step, you will need to install [Python3](https://www.python.org/downloads/). 
 
-### installing using Conda
+### Install with Anaconda (highly reccomended)
 
 1. Download Anaconda (miniconda version) – a package and environment manager for Python
 
 2. Clone this repo somewhere on your computer. This will be your working directory.
 
-3. Open Anaconda Prompt. Run cd (path to working directory)
+3. Open Anaconda Prompt. Run `cd (path to working directory)`
 
-4. Run conda create –name (env name) –file environment.yml.
+4. Run `conda env create –f environment.yml` (if you want to change the environment name, open the environment.yml file in a text editor and change name in the first line). 
 
 ### installing using pip
 
@@ -24,17 +24,17 @@ For all below step, you will need to install [Python3](https://www.python.org/do
 
 ## Running the tool
 
-1. Place input GTFS zip files in the "feeds" folder inside the working directory. Do not unzip them.
+1. Place input GTFS zip files in the "feeds" folder inside the working directory. Do not unzip them. The folder must be called feeds (all lowercase). 
 
 2. Open Anaconda Prompt (cmd prompt / terminal if using pip). Cd to your working directory.
 
-3. Run conda activate (env name) OR source env/bin/activate (for pip)
+3. Run `conda activate (env name)` OR `source env/bin/activate` (for pip)
 
-4. Run python app.py
+4. Run `python app.py`
 
 5. Follow the messages displayed in the prompt (see "settings" and "configuration" below).
 
-6. When finished, run conda deactivate.
+6. When finished, run `conda deactivate`
 
 ## Settings
 
