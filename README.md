@@ -2,6 +2,8 @@ This tool provides an easy-to-use command line interface for producing shapefile
 
 ## First time setup and installation
 
+For all below step, you will need to install [Python3](https://www.python.org/downloads/). 
+
 1. Download Anaconda (miniconda version) – a package and environment manager for Python
 
 2. Clone this repo somewhere on your computer. This will be your working directory.
