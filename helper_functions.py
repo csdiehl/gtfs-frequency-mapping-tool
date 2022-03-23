@@ -1,19 +1,29 @@
+import pandas as pd
+import zipfile
+
 #helper functions
-def check_routes(route_list):
-  for route in route_list:
-    if route not in routes.route_short_name.unique():
-      print("Route " + str(route) + ' Not Found.')
-      route_choices = input('Please enter a new route list: ')
-      route_list = route_choices.upper().replace(' ', '').split(",")
-      check_routes(route_list)  
-  return True
+def check_routes(route_list, routes):
+    wrong_names = []
+    for route in route_list:
+        if route not in routes.route_short_name.unique():
+            wrong_names.append(route)
+
+    if len(wrong_names) >= 1:
+        print("Routes " + str(wrong_names)[1:-1] + ' Not Found.')
+        route_choices = input('Please enter a new route list: ')
+        route_list = route_choices.upper().replace(' ', '').split(",")
+
+        #recursively call check routes with the new list until it's good
+        check_routes(route_list, routes)
+
+    return route_list
 
 #function to get the service ids for selected day type
-def filter_dates(selected_day, feed_path):
+def filter_dates(selected_day, GTFS):
     calendar = None
     dates = None
     
-    with zipfile.ZipFile(feed_path) as myzip:
+    with zipfile.ZipFile('./feeds/' + GTFS) as myzip:
         try: 
             myzip.extract('calendar.txt')
             calendar = pd.read_csv('calendar.txt')
@@ -43,6 +53,7 @@ def filter_dates(selected_day, feed_path):
         else: 
             condition = dates.day_type.isin([0,1,2,3,4,5,6])
 
+        #Convert to string for comparison with the trips
         service_ids = dates[condition].service_id.unique()
         
-        return service_ids
+    return service_ids.astype(str)
