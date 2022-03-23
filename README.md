@@ -47,3 +47,15 @@ The tool can be configured using an optional file. Use the config.py file as an 
 - File name: what to call the output file (without the extension)
 
 Name the configuration file anything you want and place in the same folder. Run the tool with the name of the config file (excluding the .py extension) as a command line argument (e.g. python app.py config). 
+
+## Results
+
+The attributes below appear in the shapefile. 
+
+- s_st_name: the first stop on the segment
+- e_st_name: the last stop on the segment
+- route_name: comma-separated list of routes running on this segment in the specified time period
+- hourly_frequency: Buses per hour
+- trips_in_p: Total bus trips in the specified time period
+- headway_mins: Scheduled-based headway. Minutes between each bus, on average
+
